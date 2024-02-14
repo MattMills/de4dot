@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 using dnlib.DotNet.Writer;
@@ -369,6 +370,8 @@ namespace de4dot.code {
 
 			deob.DeobfuscateBegin();
 			DeobfuscateMethods();
+			if (options.StringDecrypterType == DecrypterType.Delegate || options.StringDecrypterType == DecrypterType.Emulate)
+				dynamicStringInliner.LogUnusedDecrypters();
 			deob.DeobfuscateEnd();
 		}
 
@@ -594,6 +597,7 @@ namespace de4dot.code {
 				return;
 
 			var blocks = new Blocks(method);
+
 			int numRemovedLocals = 0;
 			int oldNumInstructions = method.Body.Instructions.Count;
 
@@ -755,6 +759,7 @@ namespace de4dot.code {
 				var cflowDeobfuscator = new BlocksCflowDeobfuscator(deob.BlocksDeobfuscators, disableNewCFCode);
 				cflowDeobfuscator.Initialize(blocks);
 				cflowDeobfuscator.Deobfuscate();
+				blocks.RepartitionBlocks();
 			});
 		}
 
